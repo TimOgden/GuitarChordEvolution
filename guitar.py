@@ -17,14 +17,17 @@ class Guitar():
 		current_fret = 1
 		for f in chord.fingers:
 			current_fret += f.fret
-			if(f.technique=='Full_Barre' or f.technique=='Partial_Barre'):
+			if(f.technique=='Full_Barre'):
+				for s in range(1, f.string+1):
+					frets_list[s-1] = current_fret
+			if(f.technique=='Partial_Barre'):
 				for s in range(f.stop_string, f.string+1):
 					frets_list[s-1] = current_fret
 			if(f.technique=='Single_Note_Then_Mute'):
 				frets_list[f.string-1] = current_fret
-				for i in range(f.stop_string-1, f.string):
+				for i in range(f.stop_string, f.string):
 					frets_list[i-1] = -9999
-			if(f.technique=='Single_Note_Then_Open'):
+			if(f.technique=='Single_Note'):
 				frets_list[f.string-1] = current_fret
 		notes_list = []
 		for c,i in enumerate(frets_list):
@@ -34,7 +37,7 @@ class Guitar():
 	@staticmethod
 	def play_chord(chord):
 		notes, frets = read_chord(chord)
-		
+
 
 if __name__ == '__main__':
 	chord = Chord()
