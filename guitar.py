@@ -10,7 +10,7 @@ class Guitar():
 	 2: Note('B',3),
 	 1: Note('E',4)
 	}
-
+	# Converts the finger shapes into something more readable
 	@staticmethod
 	def read_chord(chord):
 		frets_list = np.zeros(6)
