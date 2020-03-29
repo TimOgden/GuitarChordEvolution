@@ -4,11 +4,14 @@ from pydub import AudioSegment
 import numpy as np
 import pyaudio
 import wave
+import threading
+import plot_spectrogram
+import time
 
 p = pyaudio.PyAudio()
 rate = 44100
 chunk = 1024
-recording_length = 3
+recording_length = 6
 channels = 1
 p_format = pyaudio.paInt16
 
@@ -18,7 +21,7 @@ end_threshold_silence = 500
 stream = p.open(format=p_format, channels=channels,
 				rate=rate, input=True, frames_per_buffer=chunk)
 
-def record_for_time(filename, time=recording_length, plt_wav=True):
+def record_for_time(filename, time=recording_length, plt_wav=False):
 	print('* recording')
 	frames = []
 
@@ -72,6 +75,11 @@ def plot_wav(file, dispEnds=False, start=0, end=0):
 		plt.axvline(end, color='r')
 	plt.show()
 
-if __name__ == '__main__':
+def start_recording_thread(filename, time=recording_length, plt_wav=False):
+	x = threading.Thread(target=record_for_time, args=(filename, time, plt_wav))
+	x.start()
 
-	record_for_time('./tmp/0.wav')
+if __name__ == '__main__':
+	start_recording_thread('./tmp/target.wav', time=5, plt_wav=True)
+	time.sleep(5)
+	plot_spectrogram.plot_spect('./tmp/target.wav','./tmp/target.png')

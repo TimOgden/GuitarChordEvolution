@@ -9,10 +9,13 @@ class Chord(object):
 		self.fingers = []
 		self.fingers.append(FirstFinger())
 		self.start_fret = self.fingers[0].fret
+		self.fitness = float('inf')
+		self.alive = True
 		for i in range(np.random.randint(0,4)):
 			self.fingers.append(AdditionalFinger())
 
 	def plot_chord(self):
+		#plt.figure(figsize=(6,7))
 		start_fret = self.fingers[0].fret
 		end_fret = start_fret + self.FRETBOARD_SIZE
 		x_axis = np.arange(start_fret,end_fret)
@@ -55,11 +58,10 @@ class Chord(object):
 		#print("Plotting finger at string:{}, fret:{} with technique:{}".format(finger.string,current_fret
 		#				,finger.technique))
 		return rect
-		
+
 		
 
 if __name__ == "__main__":
-	plt.figure(figsize=(6,7))
 	n_rows, n_cols = 5,5
 	for i in range(n_rows*n_cols):
 		plt.subplot(n_rows, n_cols, i+1)
