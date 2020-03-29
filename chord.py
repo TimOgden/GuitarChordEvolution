@@ -3,7 +3,8 @@ import matplotlib.patches as patches
 import numpy as np
 from finger import FirstFinger, AdditionalFinger
 class Chord(object):
-	FRETBOARD_SIZE = 10
+	FRETBOARD_SIZE = 7
+	FINGER_COLORS = ['b','r','g','c']
 	def __init__(self):
 		self.fingers = []
 		self.fingers.append(FirstFinger())
@@ -16,7 +17,7 @@ class Chord(object):
 		end_fret = start_fret + self.FRETBOARD_SIZE
 		x_axis = np.arange(start_fret,end_fret)
 		y_axis = np.arange(1,7)
-		plt.figure(figsize=(5,6))
+		
 		ax = plt.gca()
 		#plt.plot(x_axis, y_axis)
 
@@ -30,17 +31,19 @@ class Chord(object):
 		# Adding lines to draw frets
 		[plt.axhline(y=i,color='k') for i in np.arange(end_fret-start_fret)]
 		current_fret = 1
+		c = 0
 		for f in self.fingers:
 			current_fret += f.fret
 			#print("Current fret:", current_fret)
-			patch = self.plot_finger(f, current_fret)
+			patch = self.plot_finger(f, current_fret, c)
+			c+=1
 			if(patch):
 				ax.add_patch(patch)
 		#rect = patches.Rectangle((.5,0.125), 1, .75)
 		#ax.add_patch(rect)
 		#plt.axes()
-		plt.show()
-	def plot_finger(self, finger, current_fret):
+
+	def plot_finger(self, finger, current_fret, c):
 		bl_x = 5 - finger.string + .5
 		bl_y = self.FRETBOARD_SIZE - 1 - (current_fret - self.start_fret) + .125
 		width = .9
@@ -48,13 +51,18 @@ class Chord(object):
 			width = (finger.string+1)*.9
 		if(finger.technique=='Partial_Barre'):
 			width = (finger.string-finger.stop_string+1)*.9
-		rect = patches.Rectangle((bl_x,bl_y), width, .75)
-		print("Plotting finger at string:{}, fret:{} with technique:{}".format(finger.string,current_fret
-						,finger.technique))
+		rect = patches.Rectangle((bl_x,bl_y), width, .75, color=self.FINGER_COLORS[c])
+		#print("Plotting finger at string:{}, fret:{} with technique:{}".format(finger.string,current_fret
+		#				,finger.technique))
 		return rect
 		
 		
 
 if __name__ == "__main__":
-	chord = Chord()
-	chord.plot_chord()
+	plt.figure(figsize=(6,7))
+	n_rows, n_cols = 5,5
+	for i in range(n_rows*n_cols):
+		plt.subplot(n_rows, n_cols, i+1)
+		chord = Chord()
+		chord.plot_chord()
+	plt.show()

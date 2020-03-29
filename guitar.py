@@ -1,6 +1,9 @@
 from note import Note
 from chord import Chord
 import numpy as np
+from jpype import startJVM, shutdownJVM, java, addClassPath, JClass, JInt
+import jpype.imports
+import matplotlib.pyplot as plt
 class Guitar():
 	open_string_tunings = {
 	 6: Note('E',2),
@@ -36,13 +39,27 @@ class Guitar():
 
 	@staticmethod
 	def play_chord(chord):
-		notes, frets = read_chord(chord)
-
+		try:
+			pass # Not sure why we need a pass here
+			tester = JClass('SoundTester')
+			e_ = java.lang.Integer(chord[-1]) # Unpacking the integers
+			a = java.lang.Integer(chord[-2]) # from the list to supply
+			d = java.lang.Integer(chord[-3]) # it in an easier fashion
+			g = java.lang.Integer(chord[-4]) # to the JVM
+			b = java.lang.Integer(chord[-5])
+			e = java.lang.Integer(chord[-6])
+			tester.playChordTab(e_,a,d,g,b,e)
+		except Exception as e:
+			print(f"Exception: {e}")
 
 if __name__ == '__main__':
+	startJVM(convertStrings=False)
 	chord = Chord()
 	
 	notes, frets = Guitar.read_chord(chord)
-	print([str(i) for i in notes])
-	print([int(i) for i in frets])
+	print([str(i) for i in np.flip(notes)])
+	print([int(i) for i in np.flip(frets)])
 	chord.plot_chord()
+	plt.show()
+	Guitar.play_chord(frets)
+	shutdownJVM()

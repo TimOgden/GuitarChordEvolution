@@ -35,7 +35,7 @@ class Note():
 	def __str__(self):
 		if(self.dist_from_middle_c()<=-1000):
 			return 'Muted'
-		return self.letter + str(int(self.octave))
+		return self.letter + '_' + str(int(self.octave))
 
 if __name__ == '__main__':
 	#note = Note('A',2)
