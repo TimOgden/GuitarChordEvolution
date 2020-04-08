@@ -1,5 +1,4 @@
 from note import Note
-from chord import Chord
 import numpy as np
 from jpype import startJVM, shutdownJVM, java, addClassPath, JClass, JInt
 import jpype.imports
@@ -21,7 +20,7 @@ class Guitar():
 	@staticmethod
 	def read_chord(chord):
 		frets_list = np.zeros(6)
-		current_fret = 1
+		current_fret = 0
 		for f in chord.fingers:
 			current_fret += f.fret
 			if(f.technique=='Full_Barre'):
@@ -39,7 +38,7 @@ class Guitar():
 		notes_list = []
 		for c,i in enumerate(frets_list):
 			notes_list.append(Note.decode_dist(Guitar.open_string_tunings[c+1].increment(i)))
-		return np.flip(notes_list), np.flip(frets_list).astype(np.int16)
+		return np.flip(frets_list).astype(np.int16)
 
 	@staticmethod
 	def play_chord(chord):

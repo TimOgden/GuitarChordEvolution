@@ -5,89 +5,133 @@ import random
 from finger_technique import Technique
 from finger import FirstFinger, AdditionalFinger, Finger
 import matplotlib.pyplot as plt
-MUTATION_RATE = .05
+MUTATION_RATE = .1
 
-def combine_3(a_choice, b_choice, mutation):
+def combine_3(a_choice, b_choice, mutation, attr='fret', debug=False):
+	if debug:
+		print('A_Finger:', a_choice, 'B_Finger:', b_choice)
+	if(a_choice is None and b_choice is None):
+		return mutation, False
 	if np.random.uniform() < MUTATION_RATE:
-		return mutation
+		if debug:
+			print('{} was mutated. Is now {}'.format(attr,mutation))
+		return mutation, True
 	if np.random.uniform() < .5:
-		return a_choice
-	return b_choice
+		if a_choice is not None:
+			val = getattr(a_choice, attr)
+			if debug:
+				print('Finger A was selected. {} is now {}'.format(attr,val))
+			return val, False
 
-def combine_2(choice, mutation):
+	if b_choice is not None:
+		val = getattr(b_choice,attr)
+	else:
+		return mutation, False
+	if debug:
+		print('Finger B was selected. {} is now {}'.format(attr,val))
+	return val, False
+
+def combine_2(a_finger, b_finger, c, debug=False):
+	# Create new finger (in case of mutation)
+	# If neither exist:
+	#	If mutation:
+	#		return mutation
+	# If both exist:
+	#	flip coin and return one of them
+	# If a exists:
+	#	return a
+	# Else:
+	#	return b
+	#print(a_finger,b_finger)
+	if a_finger is None and b_finger is None:
+		if mutate():
+				if c==0:
+					if debug:
+						print('First finger was added through mutation.')
+					return FirstFinger(fret=None)
+				else:
+					if c < 3:
+						if debug:
+							print('Additional finger was added through mutation.')
+						return AdditionalFinger(fret=None)
 	if mutate():
-		return mutation
-	return choice
+		if debug:
+			print("Finger {} was mutated".format(c+1))
+		if c==0:
+			return FirstFinger(fret=None)
+		else:
+			return AdditionalFinger(fret=None)
+	if a_finger is not None and b_finger is not None:
+		if np.random.uniform() < .5:
+			if debug:
+				print("Finger {} was selected from A".format(c+1))
+			return a_finger
+		else:
+			if debug:
+				print("Finger {} was selected from B".format(c+1))
+			return b_finger
+	if a_finger is not None:
+		if debug:
+			print("Finger {} was selected from A".format(c+1))
+		return a_finger
+	if debug:
+		print("Finger {} was selected from B".format(c+1))
+	return b_finger
 
 def mutate():
 	return np.random.uniform() < MUTATION_RATE
 
 def breed(a,b, debug=False):
-	c = Chord()
-	c.fingers = []
-	c.alive = True
+	fingers = []
+	
+	
+
 	for i in range(4):
-		# new finger is a finger, b finger or dne
-		finger = None
-		if(i==0):
-			finger = FirstFinger()
+		if i>=len(a.fingers):
+			a_finger = None
 		else:
-			finger = AdditionalFinger()
-		a_exists = True
-		b_exists = True
-		if(i>=len(a.fingers)):
-			a_exists = False
-		if(i>=len(b.fingers)):
-			b_exists = False
-
-		if(a_exists and b_exists):
-			if i == 0:
-				finger.fret = combine_3(a.fingers[0].fret,b.fingers[0].fret, random.randint(0, 20))
-			else:
-				finger.fret = combine_3(a.fingers[i].fret,b.fingers[i].fret, random.randint(0,3))
-			finger.technique = combine_3(a.fingers[i].technique,b.fingers[i].technique, random.choice(Technique.possibilities))
-			finger.string = combine_3(a.fingers[i].string,b.fingers[i].string, random.randint(1,6))
-			finger.stop_string = combine_3(a.fingers[i].stop_string,b.fingers[i].stop_string, random.randint(1,finger.string))
-		if(a_exists and not b_exists):
-			if i == 0:
-				finger.fret = combine_2(a.fingers[0].fret, random.randint(0, 20))
-			else:
-				finger.fret = combine_2(a.fingers[i].fret, random.randint(0,3))
-			finger.technique = combine_2(a.fingers[i].technique, random.choice(Technique.possibilities))
-			finger.string = combine_2(a.fingers[i].string, random.randint(1,6))
-			finger.stop_string = combine_2(a.fingers[i].stop_string, random.randint(1,finger.string))
-		if(not a_exists and b_exists):
-			if i == 0:
-				finger.fret = combine_2(b.fingers[0].fret, random.randint(0, 20))
-			else:
-				finger.fret = combine_2(b.fingers[i].fret, random.randint(0,3))
-			finger.technique = combine_2(b.fingers[i].technique, random.choice(Technique.possibilities))
-			finger.string = combine_2(b.fingers[i].string, random.randint(1,6))
-			finger.stop_string = combine_2(b.fingers[i].stop_string, random.randint(1,finger.string))
+			a_finger = a.fingers[i]
+		if i>=len(b.fingers):
+			b_finger = None
 		else:
-			# If mutation, finger.randomize(), else, finger is None
-			finger = None
-		if(finger):
-			c.fingers.append(finger)
+			b_finger = b.fingers[i]
+		desired_finger = combine_2(a_finger, b_finger,i, debug=True)
+		fingers.append(desired_finger)
+	c = Chord(fingers=fingers)
+	
+	
 	if debug:
-		_, frets_a = Guitar.read_chord(a)
-		_, frets_b = Guitar.read_chord(b)
-		_, frets_c = Guitar.read_chord(c)
-		print('A:', [i for i in frets_a])
-		print('B:', [i for i in frets_b])
-		print('C:', [i for i in frets_c])
-
+		print('A:',Guitar.read_chord(a))
+		print('B:',Guitar.read_chord(b))
+		print('C:',Guitar.read_chord(c))
 	return c
 
 if __name__ == '__main__':
-	a = Chord()
-	b = Chord()
-	plt.subplot(2,1,1)
-	a.plot_chord()
-	plt.subplot(2,1,2)
-	b.plot_chord()
-	plt.show()
+	
+	f1 = Finger(fret=15,technique='Full_Barre',string=6)
+	f2 = Finger(fret=1, technique='Single_Note',string=3)
+	f3 = Finger(fret=1, technique='Single_Note',string=5)
+	f4 = Finger(fret=0, technique='Single_Note',string=4)
+	chord2 = Chord(fingers=[f1,f2,f3,f4])
 
-	c = breed(a,b)
+	
+
+	f1 = Finger(fret=17,technique='Single_Note',string=5)
+	f2 = Finger(fret=1, technique='Single_Note',string=6)
+	f3 = Finger(fret=0,technique='Full_Barre',string=2)
+	chord1 = Chord(fingers=[f1,f2,f3])
+	
+	c = breed(chord1,chord2, debug=True)
+
+	
+	plt.subplot(131)
+	chord1.plot_chord()
+	plt.subplot(132)
+	chord2.plot_chord()
+	plt.subplot(133)
 	c.plot_chord()
+
+	print(len(c.fingers))
+	
 	plt.show()
+	
