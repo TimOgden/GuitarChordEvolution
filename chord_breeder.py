@@ -7,30 +7,6 @@ from finger import FirstFinger, AdditionalFinger, Finger
 import matplotlib.pyplot as plt
 MUTATION_RATE = .1
 
-def combine_3(a_choice, b_choice, mutation, attr='fret', debug=False):
-	if debug:
-		print('A_Finger:', a_choice, 'B_Finger:', b_choice)
-	if(a_choice is None and b_choice is None):
-		return mutation, False
-	if np.random.uniform() < MUTATION_RATE:
-		if debug:
-			print('{} was mutated. Is now {}'.format(attr,mutation))
-		return mutation, True
-	if np.random.uniform() < .5:
-		if a_choice is not None:
-			val = getattr(a_choice, attr)
-			if debug:
-				print('Finger A was selected. {} is now {}'.format(attr,val))
-			return val, False
-
-	if b_choice is not None:
-		val = getattr(b_choice,attr)
-	else:
-		return mutation, False
-	if debug:
-		print('Finger B was selected. {} is now {}'.format(attr,val))
-	return val, False
-
 def combine_2(a_finger, b_finger, c, debug=False):
 	# Create new finger (in case of mutation)
 	# If neither exist:
@@ -54,6 +30,7 @@ def combine_2(a_finger, b_finger, c, debug=False):
 						if debug:
 							print('Additional finger was added through mutation.')
 						return AdditionalFinger(fret=None)
+		return None
 	if mutate():
 		if debug:
 			print("Finger {} was mutated".format(c+1))
@@ -83,9 +60,6 @@ def mutate():
 
 def breed(a,b, debug=False):
 	fingers = []
-	
-	
-
 	for i in range(4):
 		if i>=len(a.fingers):
 			a_finger = None
@@ -96,7 +70,8 @@ def breed(a,b, debug=False):
 		else:
 			b_finger = b.fingers[i]
 		desired_finger = combine_2(a_finger, b_finger,i, debug=True)
-		fingers.append(desired_finger)
+		if desired_finger is not None:
+			fingers.append(desired_finger)
 	c = Chord(fingers=fingers)
 	
 	
@@ -107,31 +82,14 @@ def breed(a,b, debug=False):
 	return c
 
 if __name__ == '__main__':
-	
-	f1 = Finger(fret=15,technique='Full_Barre',string=6)
-	f2 = Finger(fret=1, technique='Single_Note',string=3)
-	f3 = Finger(fret=1, technique='Single_Note',string=5)
-	f4 = Finger(fret=0, technique='Single_Note',string=4)
-	chord2 = Chord(fingers=[f1,f2,f3,f4])
-
-	
-
-	f1 = Finger(fret=17,technique='Single_Note',string=5)
-	f2 = Finger(fret=1, technique='Single_Note',string=6)
-	f3 = Finger(fret=0,technique='Full_Barre',string=2)
-	chord1 = Chord(fingers=[f1,f2,f3])
-	
-	c = breed(chord1,chord2, debug=True)
-
-	
-	plt.subplot(131)
-	chord1.plot_chord()
-	plt.subplot(132)
-	chord2.plot_chord()
-	plt.subplot(133)
-	c.plot_chord()
-
-	print(len(c.fingers))
-	
+	f1 = Finger(fret=1,technique='Single_Note',string=2)
+	f2 = Finger(fret=1,technique='Single_Note',string=4)
+	f3 = Finger(fret=1,technique='Single_Note',string=5)
+	chord = Chord(fingers=[f1,f2,f3])
+	frets = Guitar.read_chord(chord)
+	frequencies = Guitar.frequency_list(frets)
+	print(frequencies)
+	chord.plot_chord()
 	plt.show()
+	#print([Note.from_frequency(frequencies)])
 	

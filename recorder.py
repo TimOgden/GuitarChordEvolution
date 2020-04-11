@@ -80,6 +80,6 @@ def start_recording_thread(filename, time=recording_length, plt_wav=False):
 	x.start()
 
 if __name__ == '__main__':
-	start_recording_thread('./tmp/target.wav', time=5, plt_wav=True)
+	start_recording_thread('./tmp/target_real.wav', time=5, plt_wav=True)
 	time.sleep(5)
-	plot_spectrogram.plot_spect('./tmp/target.wav','./tmp/target.png')
+	plot_spectrogram.plot_spect('./tmp/target_real.wav','./tmp/target_real.png')

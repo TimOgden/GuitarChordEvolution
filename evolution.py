@@ -11,22 +11,23 @@ import matplotlib.patches as patches
 
 pop = []
 avg_fitness = []
-n_rows, n_cols = 3,5
-first_place_bonus = 3
-second_place_bonus = 2
-third_place_bonus = 1
+n_rows, n_cols = 2,4
+first_place_bonus = 2
+second_place_bonus = 1
+third_place_bonus = 0
 MAX_POP_SIZE = n_rows * n_cols
-NUM_STEPS = 30
+NUM_STEPS = 25
+KILL_RATIO = .6
 
 def convert_to_spectrogram(filename='./tmp/guess.wav'):
 	png_file = filename[:-4] + '.png'
-	return plot_spect(filename, png_file, eval_fitness=True)
+	return plot_spect(filename, png_file)
 
 def record_and_eval(chord):
 	frets = Guitar.read_chord(chord)
 	start_recording_thread('./tmp/guess.wav')
 	Guitar.play_chord(frets)
-	time.sleep(2)
+	time.sleep(1)
 	return convert_to_spectrogram()
 
 def draw_x():
@@ -52,14 +53,15 @@ if __name__ == "__main__":
 	mng = plt.get_current_fig_manager()
 	mng.window.state('zoomed')
 	
-	print(len(pop))
 	Guitar.openJVM()
 	for i in range(MAX_POP_SIZE):
 		chord = Chord()
 		chord_pos[chord] = i+1
 		pop.append(chord)
+	print('Beginning natural selection with {} organisms'.format(len(pop)))
 	# Repeat following for x number of steps:
 	for step in range(NUM_STEPS):
+		f.canvas.set_window_title('Step {}/{}'.format(step+1, NUM_STEPS))
 		print('BEGINNING STEP NUMBER', step)
 		for i in range(MAX_POP_SIZE):
 			plt.subplot(n_rows, n_cols, i+1)
@@ -85,28 +87,27 @@ if __name__ == "__main__":
 		# will be eliminated and will not have a chance to breed.
 		# - sort by fitness
 		# - remove the bottom half
-		pop.sort(key=lambda x: (x.fitness), reverse=True)
-		for c, chord in enumerate(pop[:int(len(pop)/2)]):
+		pop.sort(key=lambda x: (x.fitness), reverse=False)
+		print([x.fitness for x in pop])
+		for c, chord in enumerate(pop[int(len(pop)*KILL_RATIO):]):
 			plt.subplot(n_rows, n_cols,chord_pos[chord])
 			plt.title('Killed')
 			draw_x()
 			chord.alive = False
+			print('Killed Chord {} with f={}'.format(chord_pos[chord],chord.fitness))
 			pop.remove(chord)
 			plt.pause(0.5)
 
 		# **Breed the organisms to refill the population**
 		# - Lowest fitness should breed the most
 		# - Use chord_breeder.py to generate offspring
-		candidates = []
-		for chord in pop[int(len(pop)/2):]:
-			candidates.append(chord)
-		[candidates.append(candidates[0]) for _ in range(first_place_bonus-1)]
-		[candidates.append(candidates[1]) for _ in range(second_place_bonus-1)]
-		[candidates.append(candidates[2]) for _ in range(third_place_bonus-1)]
-		candidates = np.repeat(candidates,2)
+		candidates = np.copy(pop)
+		[np.append(candidates,pop[0]) for _ in range(first_place_bonus)]
+		[np.append(candidates,pop[1]) for _ in range(second_place_bonus)]
+		[np.append(candidates,pop[2]) for _ in range(third_place_bonus)]
+		candidates = np.repeat(candidates,3)
 		candidates = np.random.permutation(candidates)
 
-		print(candidates)
 		print('Population size after deletion:',len(pop))
 		diff = MAX_POP_SIZE - len(pop)
 		print('Diff:',diff)

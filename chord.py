@@ -27,6 +27,7 @@ class Chord(object):
 	def read_chord(self):
 		frets_list = np.zeros(6)
 		current_fret = 0
+		
 		for f in self.fingers:
 			current_fret += f.fret
 			if(f.technique=='Full_Barre'):
@@ -89,12 +90,3 @@ class Chord(object):
 		#				,finger.technique))
 		return rect
 
-		
-
-if __name__ == "__main__":
-	n_rows, n_cols = 5,4
-	for i in range(n_rows*n_cols):
-		plt.subplot(n_rows, n_cols, i+1)
-		chord = Chord()
-		chord.plot_chord()
-	plt.show()

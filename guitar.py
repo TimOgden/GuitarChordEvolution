@@ -4,6 +4,9 @@ from jpype import startJVM, shutdownJVM, java, addClassPath, JClass, JInt
 import jpype.imports
 import matplotlib.pyplot as plt
 from recorder import start_recording_thread
+from finger import Finger
+from chord import Chord
+from plot_spectrogram import MSE, AE
 import time
 class Guitar():
 	jvm_open = False
@@ -35,9 +38,7 @@ class Guitar():
 					frets_list[i-1] = -9999
 			if(f.technique=='Single_Note'):
 				frets_list[f.string-1] = current_fret
-		notes_list = []
-		for c,i in enumerate(frets_list):
-			notes_list.append(Note.decode_dist(Guitar.open_string_tunings[c+1].increment(i)))
+		
 		return np.flip(frets_list).astype(np.int16)
 
 	@staticmethod
@@ -59,6 +60,10 @@ class Guitar():
 			print(f"Exception: {e}")
 
 	@staticmethod
+	def frequency_list(tab):
+		return [Guitar.open_string_tunings[6-c].increment(fret).frequency() for c, fret in enumerate(tab)]
+
+	@staticmethod
 	def openJVM():
 		startJVM(convertStrings=False)
 		jvm_open = True
@@ -71,13 +76,4 @@ class Guitar():
 
 if __name__ == '__main__':
 	Guitar.openJVM()
-	chord = Chord()
-	
-	notes, frets = Guitar.read_chord(chord)
-	print([str(i) for i in notes])
-	print([i for i in frets])
-	chord.plot_chord()
-	plt.show()
-	start_recording_thread('./tmp/test.wav')
-	Guitar.play_chord(frets)
 	Guitar.closeJVM()
