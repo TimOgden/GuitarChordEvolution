@@ -5,7 +5,7 @@ import random
 from finger_technique import Technique
 from finger import FirstFinger, AdditionalFinger, Finger
 import matplotlib.pyplot as plt
-MUTATION_RATE = .1
+MUTATION_RATE = .3
 
 def combine_2(a_finger, b_finger, c, debug=False):
 	# Create new finger (in case of mutation)
@@ -26,7 +26,7 @@ def combine_2(a_finger, b_finger, c, debug=False):
 						print('First finger was added through mutation.')
 					return FirstFinger(fret=None)
 				else:
-					if c < 3:
+					if c <= 3:
 						if debug:
 							print('Additional finger was added through mutation.')
 						return AdditionalFinger(fret=None)
@@ -69,27 +69,29 @@ def breed(a,b, debug=False):
 			b_finger = None
 		else:
 			b_finger = b.fingers[i]
-		desired_finger = combine_2(a_finger, b_finger,i, debug=True)
+		desired_finger = combine_2(a_finger, b_finger,i, debug=debug)
 		if desired_finger is not None:
 			fingers.append(desired_finger)
 	c = Chord(fingers=fingers)
 	
 	
 	if debug:
-		print('A:',Guitar.read_chord(a))
-		print('B:',Guitar.read_chord(b))
-		print('C:',Guitar.read_chord(c))
+		print('Chord {} bred with Chord {}'.format(a.subplot, b.subplot))
 	return c
 
 if __name__ == '__main__':
-	f1 = Finger(fret=1,technique='Single_Note',string=2)
-	f2 = Finger(fret=1,technique='Single_Note',string=4)
-	f3 = Finger(fret=1,technique='Single_Note',string=5)
-	chord = Chord(fingers=[f1,f2,f3])
-	frets = Guitar.read_chord(chord)
-	frequencies = Guitar.frequency_list(frets)
-	print(frequencies)
-	chord.plot_chord()
+	# Defining master chord
+	f1 = Finger(string=6, technique='Full_Barre', fret=3)
+	f2 = Finger(string=3, technique='Single_Note',fret=1)
+	f3 = Finger(string=4, technique='Single_Note',fret=1)
+	f4 = Finger(string=5, technique='Single_Note',fret=0)
+	master_chord = Chord(fingers=[f1,f2,f3,f4])
+	master_frequencies = Guitar.frequency_list(Guitar.read_chord(master_chord))
+	master_chord.plot_chord()
 	plt.show()
+	
+	chord = Chord()
+	frequencies = Guitar.frequency_list(Guitar.read_chord(chord))
+	fitness = np.count_nonzero(master)
 	#print([Note.from_frequency(frequencies)])
 	

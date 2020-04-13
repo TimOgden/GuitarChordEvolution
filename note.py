@@ -1,3 +1,4 @@
+import numpy as np
 class Note():
 	dist_from_middle_c_dict = {'A': -3, 'A#': -2, 'B': -1, 'C': 0,
 		'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5,
@@ -42,6 +43,10 @@ class Note():
 	def increment(self, dist):
 		dist_from_a4 = self.dist_from_a4()
 		return self.decode_dist(dist_from_a4+dist)
+
+	@staticmethod
+	def num_half_steps(f1, f2):
+		return 12*(np.log2(f1/440)-np.log2(f2)/440)
 
 	def frequency(self):
 		return 2**(self.dist_from_a4()/12)*440

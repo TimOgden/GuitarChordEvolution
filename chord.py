@@ -3,19 +3,20 @@ import matplotlib.patches as patches
 import numpy as np
 from finger import FirstFinger, AdditionalFinger
 class Chord(object):
-	FRETBOARD_SIZE = 8
-	FINGER_COLORS = ['b','r','g','c','k']
+	FRETBOARD_SIZE = 7
+	FINGER_COLORS = ['b','r','g','c']
 	def __init__(self, fingers=None):
 		if fingers is None:
 			self.fingers = []
 			self.fingers.append(FirstFinger())
-			for i in range(np.random.randint(0,3)):
+			for i in range(np.random.randint(0,4)):
 				self.fingers.append(AdditionalFinger())
 		else:
 			self.fingers = fingers
 		self.start_fret = self.fingers[0].fret
 		self.fitness = float('inf')
 		self.alive = True
+		self.subplot = None
 		
 	def make_frets_readable(self, frets):
 		frets = frets.astype(str)

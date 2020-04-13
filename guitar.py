@@ -61,8 +61,12 @@ class Guitar():
 
 	@staticmethod
 	def frequency_list(tab):
-		return [Guitar.open_string_tunings[6-c].increment(fret).frequency() for c, fret in enumerate(tab)]
-
+		frequency_list = []
+		for c, fret in enumerate(tab):
+			if fret != -9999:
+				frequency_list.append(Guitar.open_string_tunings[6-c].increment(fret).frequency())
+		return frequency_list
+		
 	@staticmethod
 	def openJVM():
 		startJVM(convertStrings=False)

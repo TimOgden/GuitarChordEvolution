@@ -27,7 +27,7 @@ class FirstFinger(Finger):
 
 
 	def randomize(self):
-		self.fret = random.randint(0, 20)
+		self.fret = random.randint(1, 20)
 		self.technique = random.choice(Technique.possibilities)
 		self.string = random.randint(1,6)
 		self.stop_string = random.randint(1,self.string)
