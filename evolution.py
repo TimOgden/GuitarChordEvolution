@@ -62,8 +62,8 @@ def patient():
 
 def fitness_eval(frequencies):
 	matrix = []
-	print('Master:',master_frequencies)
-	print('Other:',frequencies)
+	#print('Master:',master_frequencies)
+	#print('Other:',frequencies)
 	for r, freq in enumerate(master_frequencies):
 		row = []
 		for c, m_freq in enumerate(frequencies):
@@ -71,18 +71,23 @@ def fitness_eval(frequencies):
 			row.append(abs(Note.num_half_steps(m_freq, freq)))
 		matrix.append(row)
 	matrix = np.array(matrix)
-	col_mins = np.amin(matrix, axis=0)
+	col_mins = [None, None] # Placeholder to satisfy the first iteration of while loop
 	delta = 0
 	while len(col_mins) > 1:
-		col_mins = np.amin(matrix, axis=0)
-		smallest_col = np.argmin(col_mins)
-		print('Matrix:')
-		print(matrix)
+		col_mins = np.amin(matrix, axis=0)[:len(frequencies)]
+		smallest_col = np.argmin(col_mins) # This freq achieves (with some m_freq) the closest step count
+		
+		#print('Matrix:')
+		#print(matrix)
 
-		print('Column mins:',col_mins)
-		print('---------------')
-		# Now that we know 
-		matrix = np.delete(matrix, smallest_col, axis=0)
+		#print('Column mins:',col_mins)
+		#print('---------------')
+		# Now that we know which m_freq has the potential to be the closest,
+		# let's find the freq/m_freq combo that is closest
+		desired_row = np.argmin(matrix[:,smallest_col])
+		delta = matrix[desired_row,smallest_col]
+		#print('Desired row:',desired_row, 'Desired col:',smallest_col, 'Delta:',delta)
+		matrix = np.delete(matrix, smallest_col, axis=1)
 	if len(frequencies) > len(master_frequencies):
 		print('Number of frequencies does not match')
 		return delta + (len(frequencies) - len(master_frequencies))*INCORRECT_NUMBER_NOTES_PENALTY
@@ -177,11 +182,9 @@ if __name__ == "__main__":
 	master_chord = Chord(fingers=[f1])
 	master_frequencies = Guitar.frequency_list(Guitar.read_chord(master_chord))
 
-	f1 = Finger(string=5, technique='Single_Note', fret=2)
-	f2 = Finger(string=4, technique='Single_Note', fret=0)
-	chord = Chord(fingers=[f1, f2])
+	f1 = Finger(string=4, technique='Partial_Barre', stop_string=2, fret=2)
+	chord = Chord(fingers=[f1])
 	frequency_list = Guitar.frequency_list(Guitar.read_chord(chord))
-	print(fitness_eval(frequency_list))
 	print('Master frequencies:',master_frequencies)
 	master_chord.plot_chord()
 	plt.title('Master Chord')
