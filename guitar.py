@@ -24,8 +24,11 @@ class Guitar():
 	def read_chord(chord):
 		frets_list = np.zeros(6)
 		current_fret = 0
-		for f in chord.fingers:
-			current_fret += f.fret
+		for c,f in enumerate(chord.fingers):
+			if c == 0:
+				current_fret += f.start_fret
+			else:
+				current_fret += f.increment
 			if(f.technique=='Full_Barre'):
 				for s in range(1, f.string+1):
 					frets_list[s-1] = current_fret
@@ -66,7 +69,7 @@ class Guitar():
 			if fret != -9999:
 				frequency_list.append(Guitar.open_string_tunings[6-c].increment(fret).frequency())
 		return frequency_list
-		
+
 	@staticmethod
 	def openJVM():
 		startJVM(convertStrings=False)

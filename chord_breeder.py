@@ -3,9 +3,13 @@ from chord import Chord
 from guitar import Guitar
 import random
 from finger_technique import Technique
-from finger import FirstFinger, AdditionalFinger, Finger
+from finger import Finger
 import matplotlib.pyplot as plt
 MUTATION_RATE = .3
+
+
+def set_mutation_rate(mutation_rate):
+	MUTATION_RATE = mutation_rate
 
 def combine_2(a_finger, b_finger, c, debug=False):
 	# Create new finger (in case of mutation)
@@ -21,23 +25,14 @@ def combine_2(a_finger, b_finger, c, debug=False):
 	#print(a_finger,b_finger)
 	if a_finger is None and b_finger is None:
 		if mutate():
-				if c==0:
-					if debug:
-						print('First finger was added through mutation.')
-					return FirstFinger(fret=None)
-				else:
-					if c <= 3:
-						if debug:
-							print('Additional finger was added through mutation.')
-						return AdditionalFinger(fret=None)
+				if debug:
+					print('Finger was added through mutation')
+				return Finger()
 		return None
 	if mutate():
 		if debug:
 			print("Finger {} was mutated".format(c+1))
-		if c==0:
-			return FirstFinger(fret=None)
-		else:
-			return AdditionalFinger(fret=None)
+		return Finger()
 	if a_finger is not None and b_finger is not None:
 		if np.random.uniform() < .5:
 			if debug:
@@ -61,6 +56,8 @@ def mutate():
 def breed(a,b, debug=False):
 	fingers = []
 	for i in range(4):
+		if mutate():
+			i+=1 # Skip finger i (this means that the child will have one less finger)
 		if i>=len(a.fingers):
 			a_finger = None
 		else:
