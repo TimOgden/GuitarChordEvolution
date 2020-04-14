@@ -79,19 +79,5 @@ def breed(a,b, debug=False):
 		print('Chord {} bred with Chord {}'.format(a.subplot, b.subplot))
 	return c
 
-if __name__ == '__main__':
-	# Defining master chord
-	f1 = Finger(string=6, technique='Full_Barre', fret=3)
-	f2 = Finger(string=3, technique='Single_Note',fret=1)
-	f3 = Finger(string=4, technique='Single_Note',fret=1)
-	f4 = Finger(string=5, technique='Single_Note',fret=0)
-	master_chord = Chord(fingers=[f1,f2,f3,f4])
-	master_frequencies = Guitar.frequency_list(Guitar.read_chord(master_chord))
-	master_chord.plot_chord()
-	plt.show()
-	
-	chord = Chord()
-	frequencies = Guitar.frequency_list(Guitar.read_chord(chord))
-	fitness = np.count_nonzero(master)
-	#print([Note.from_frequency(frequencies)])
-	
+#if __name__ == '__main__':
+

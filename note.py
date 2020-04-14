@@ -46,7 +46,7 @@ class Note():
 
 	@staticmethod
 	def num_half_steps(f1, f2):
-		return 12*(np.log2(f1/440)-np.log2(f2)/440)
+		return abs(12*(np.log2(f1/440)-np.log2(f2/440)))
 
 	def frequency(self):
 		return 2**(self.dist_from_a4()/12)*440
