@@ -4,7 +4,6 @@ from guitar import Guitar
 from finger import Finger
 from note import Note
 import matplotlib.pyplot as plt
-from misc_tools import TwoWayDict
 from linearinterpolation import LinearInterpolation
 import chord_breeder
 import matplotlib.patches as patches
@@ -115,7 +114,10 @@ def evolution_step(step, save_best=False):
 	for c, chord in enumerate(pop):
 		#fitness = record_and_eval(chord)
 		frequencies = Guitar.frequency_list(chord.read())
-		fitness = fitness_eval(frequencies)
+		try:
+			fitness = fitness_eval(frequencies)
+		except Exception as e:
+			print(e,frequencies)
 		#fitness = np.count_nonzero(np.isin(master_frequencies,frequencies)) + .5*np.count_nonzero(np.mod(frequencies,master_frequencies)==0)
 		#cartesian_product = np.transpose([np.tile(frequencies,len(master_frequencies)), np.repeat(master_frequencies,len(frequencies))])
 		
@@ -179,13 +181,13 @@ def evolution_step(step, save_best=False):
 
 if __name__ == "__main__":
 	# Defining master chord
-	f1 = Finger(string=2, technique='Single_Note', start_fret=1)
-	f2 = Finger(string=4, technique='Single_Note', increment=1)
-	f3 = Finger(string=5, technique='Single_Note_Mute_Above', increment=1)
+	f1 = Finger(string=3, technique='Single_Note', start_fret=1)
+	f2 = Finger(string=5, technique='Single_Note', increment=1)
+	f3 = Finger(string=4, technique='Single_Note', increment=0)
 	#f4 = Finger(string=5, technique='Single_Note', increment=0)
 	master_chord = Chord(fingers=[f1,f2,f3])
 	master_frequencies = Guitar.frequency_list(master_chord.read())
-
+	print(fitness_eval(master_frequencies))
 	print('Master frequencies:',master_frequencies)
 	master_chord.plot()
 	plt.title('Master Chord')
@@ -193,7 +195,7 @@ if __name__ == "__main__":
 	# Initializing the population randomly
 	f, axs = plt.subplots(n_rows, n_cols, sharex=True)
 	#f.tight_layout(pad=1.0)
-	chord_pos = TwoWayDict()
+	chord_pos = {}
 	
 	mng = plt.get_current_fig_manager()
 	mng.window.state('zoomed')
