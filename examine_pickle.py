@@ -9,5 +9,5 @@ if __name__ == '__main__':
 	for i in range(num):
 		plt.subplot(1,num,i+1)
 		plt.title('Chord {} f={}'.format(i+1, int(pop[i].fitness)))
-		pop[i].plot_chord()
+		pop[i].plot()
 	plt.show()

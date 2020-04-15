@@ -6,6 +6,7 @@ from note import Note
 import matplotlib.pyplot as plt
 from linearinterpolation import LinearInterpolation
 import chord_breeder
+import q_transform
 import matplotlib.patches as patches
 import pickle
 
@@ -13,14 +14,14 @@ n_rows, n_cols = 4,9
 first_place_bonus = 2 # How many more chances does 1st, 2nd, 3rd place get
 second_place_bonus = 1 # to breed?
 third_place_bonus = 0
-INCORRECT_NUMBER_NOTES_PENALTY = 1
+INCORRECT_NUMBER_NOTES_PENALTY = .5
 MAX_POP_SIZE = n_rows * n_cols
-NUM_STEPS = 50 # How many iterations of killing/breeding should take place; if -1, go until terminated
+NUM_STEPS = -1 # How many iterations of killing/breeding should take place; if -1, go until terminated
 START_KILL_RATIO = .3
 KILL_RATIO_LIMIT = .6
 kill_ratio_max = 25 # At what step should the kill ratio hit the limit
 KILL_PAUSE, FITNESS_PAUSE = .2, .5 # Controls the speed of matplotlib
-patience = 3 # How many steps does there have to be a decrease in avg fitness for evolution to end
+patience = 5 # How many steps does there have to be an increase in avg fitness for evolution to end
 
 pop = []
 fitnesses = []
@@ -53,13 +54,14 @@ def find_empty_spot():
 			return chord_pos[chord]
 	return None
 
-def patient():
+def patient(threshold=.1):
 	if len(fitnesses)<patience+1:
 		return True
-	for i in range(patience):
-		if fitnesses[-patience+i-1] > fitnesses[-patience+i]:
-			return True
-	return False
+	gradient = np.gradient(fitnesses[-patience:], axis=1)
+	if abs(np.mean(gradient, axis=None)) < threshold:
+		#print(gradient)
+		return False
+	return True
 
 def fitness_eval(frequencies):
 	matrix = []
@@ -72,7 +74,7 @@ def fitness_eval(frequencies):
 			row.append(abs(Note.num_half_steps(m_freq, freq)))
 		matrix.append(row)
 	matrix = np.array(matrix)
-	col_mins = [None, None] # Placeholder to satisfy the first iteration of while loop
+	col_mins = master_frequencies # Placeholder to satisfy the first iteration of while loop
 	delta = 0
 	while len(col_mins) > 1:
 		col_mins = np.amin(matrix, axis=0)[:len(frequencies)]
@@ -89,9 +91,9 @@ def fitness_eval(frequencies):
 		delta += matrix[desired_row,smallest_col]
 		#print('Desired row:',desired_row, 'Desired col:',smallest_col, 'Delta:',delta)
 		matrix = np.delete(matrix, smallest_col, axis=1)
-	if len(frequencies) < len(master_frequencies):
+	if len(frequencies) != len(master_frequencies):
 		#print('Number of frequencies does not match')
-		return delta + (len(master_frequencies) - len(frequencies))*INCORRECT_NUMBER_NOTES_PENALTY
+		return delta + abs(len(master_frequencies) - len(frequencies))*INCORRECT_NUMBER_NOTES_PENALTY
 	return delta
 
 def evolution_step(step, save_best=False):
@@ -181,17 +183,16 @@ def evolution_step(step, save_best=False):
 
 if __name__ == "__main__":
 	# Defining master chord
-	f1 = Finger(string=3, technique='Single_Note', start_fret=1)
-	f2 = Finger(string=5, technique='Single_Note', increment=1)
-	f3 = Finger(string=4, technique='Single_Note', increment=0)
-	#f4 = Finger(string=5, technique='Single_Note', increment=0)
-	master_chord = Chord(fingers=[f1,f2,f3])
+	f1 = Finger(string=6, technique='Mute', stop_string=1, start_fret=6)
+	master_chord = Chord(fingers=[f1])
 	master_frequencies = Guitar.frequency_list(master_chord.read())
-	print(fitness_eval(master_frequencies))
-	print('Master frequencies:',master_frequencies)
 	master_chord.plot()
 	plt.title('Master Chord')
 	plt.show()
+	#master_frequencies = q_transform.analyze('./tmp/target.wav', plot_q_transform=True, debug=True)
+	print('Master frequencies:',master_frequencies)
+	
+	
 	# Initializing the population randomly
 	f, axs = plt.subplots(n_rows, n_cols, sharex=True)
 	#f.tight_layout(pad=1.0)
