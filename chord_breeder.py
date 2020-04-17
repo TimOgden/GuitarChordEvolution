@@ -76,5 +76,3 @@ def breed(a,b, debug=False):
 		print('Chord {} bred with Chord {}'.format(a.subplot, b.subplot))
 	return c
 
-#if __name__ == '__main__':
-

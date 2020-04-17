@@ -54,12 +54,12 @@ def find_empty_spot():
 			return chord_pos[chord]
 	return None
 
-def patient(threshold=.1):
+def patient(threshold=.01):
 	if len(fitnesses)<patience+1:
 		return True
-	gradient = np.gradient(fitnesses[-patience:], axis=1)
+	gradient = np.gradient(np.mean(fitnesses[-patience:],axis=1), axis=0)
 	if abs(np.mean(gradient, axis=None)) < threshold:
-		#print(gradient)
+		print('Terminating evolution due to detection of local minimum fitness.')
 		return False
 	return True
 
@@ -100,6 +100,7 @@ def evolution_step(step, save_best=False):
 	f.canvas.set_window_title('Step {}/{}'.format(step+1, NUM_STEPS))
 	print('BEGINNING STEP NUMBER', step)
 	kill_ratio = interpolations['Kill Ratio'].interpolate(step)
+	# **Display each chord**
 	for i in range(MAX_POP_SIZE):
 		plt.subplot(n_rows, n_cols, i+1)
 		pop[i].plot()
@@ -107,23 +108,15 @@ def evolution_step(step, save_best=False):
 		pop[i].subplot = i+1
 		plt.title('Chord {}: f=unknown'.format(i+1))
 	plt.pause(FITNESS_PAUSE)
+
 	# **Calculate and assign fitness to each organism**
-	# - Start recording
-	# - play chord by guitar.py
-	# - convert wav to spectrogram by plot_spectrogram.py
-	# - fitness = MSE(target image, guess image)
 	row = []
 	for c, chord in enumerate(pop):
-		#fitness = record_and_eval(chord)
 		frequencies = Guitar.frequency_list(chord.read())
 		try:
 			fitness = fitness_eval(frequencies)
 		except Exception as e:
 			print(e,frequencies)
-		#fitness = np.count_nonzero(np.isin(master_frequencies,frequencies)) + .5*np.count_nonzero(np.mod(frequencies,master_frequencies)==0)
-		#cartesian_product = np.transpose([np.tile(frequencies,len(master_frequencies)), np.repeat(master_frequencies,len(frequencies))])
-		
-		#fitness = sum(np.absolute([Note.num_half_steps(f1,f2) for f1,f2 in cartesian_product]))/len(cartesian_product)
 		chord.fitness = fitness
 		plt.subplot(n_rows,n_cols,c+1)
 		plt.title('Chord {}: f={}'.format(c+1,round(fitness,2)))
@@ -147,7 +140,7 @@ def evolution_step(step, save_best=False):
 		plt.title('Killed')
 		draw_x()
 		chord.alive = False
-		print('Killed Chord {} with f={}'.format(chord_pos[chord],chord.fitness))
+		#print('Killed Chord {} with f={}'.format(chord_pos[chord],chord.fitness))
 		pop.remove(chord)
 	plt.pause(KILL_PAUSE)
 
@@ -161,7 +154,7 @@ def evolution_step(step, save_best=False):
 	candidates = np.repeat(candidates,4)
 	candidates = np.random.permutation(candidates)
 
-	print('Population size after deletion:',len(pop))
+	print('Beginning breeding of remaining population...')
 	diff = MAX_POP_SIZE - len(pop)
 	i = 0
 	while len(pop) < MAX_POP_SIZE:
@@ -177,7 +170,7 @@ def evolution_step(step, save_best=False):
 		
 		i+=1
 
-	print('Population size after breeding:',len(pop))
+	print('Bred {} new chords.'.format(diff))
 	plt.pause(KILL_PAUSE)
 	
 
