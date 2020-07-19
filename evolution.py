@@ -10,18 +10,19 @@ import q_transform
 import matplotlib.patches as patches
 import pickle
 
-n_rows, n_cols = 4,9
+n_rows, n_cols = 3,3
 first_place_bonus = 2 # How many more chances does 1st, 2nd, 3rd place get
 second_place_bonus = 1 # to breed?
 third_place_bonus = 0
-INCORRECT_NUMBER_NOTES_PENALTY = .5
-MAX_POP_SIZE = n_rows * n_cols
+INCORRECT_NUMBER_NOTES_PENALTY = 1
+MAX_SHOW_SIZE = n_rows * n_cols
+MAX_POP_SIZE = 20
 NUM_STEPS = -1 # How many iterations of killing/breeding should take place; if -1, go until terminated
 START_KILL_RATIO = .3
 KILL_RATIO_LIMIT = .6
 kill_ratio_max = 25 # At what step should the kill ratio hit the limit
 KILL_PAUSE, FITNESS_PAUSE = .2, .5 # Controls the speed of matplotlib
-patience = 5 # How many steps does there have to be an increase in avg fitness for evolution to end
+patience = 10 # How many steps does there have to be a stagnation in avg fitness for evolution to end
 
 pop = []
 fitnesses = []
@@ -54,16 +55,19 @@ def find_empty_spot():
 			return chord_pos[chord]
 	return None
 
-def patient(threshold=.01):
+def patient(threshold=.01, monitor='mean'):
 	if len(fitnesses)<patience+1:
 		return True
-	gradient = np.gradient(np.mean(fitnesses[-patience:],axis=1), axis=0)
+	if monitor=='min':
+		gradient = np.gradient(np.min(fitnesses[-patience:],axis=1), axis=0)
+	else:
+		gradient = np.gradient(np.mean(fitnesses[-patience:],axis=1), axis=0)
 	if abs(np.mean(gradient, axis=None)) < threshold:
 		print('Terminating evolution due to detection of local minimum fitness.')
 		return False
 	return True
 
-def fitness_eval(frequencies):
+def fitness_eval(frequencies, penalty=0):
 	matrix = []
 	#print('Master:',master_frequencies)
 	#print('Other:',frequencies)
@@ -91,17 +95,16 @@ def fitness_eval(frequencies):
 		delta += matrix[desired_row,smallest_col]
 		#print('Desired row:',desired_row, 'Desired col:',smallest_col, 'Delta:',delta)
 		matrix = np.delete(matrix, smallest_col, axis=1)
-	if len(frequencies) != len(master_frequencies):
-		#print('Number of frequencies does not match')
-		return delta + abs(len(master_frequencies) - len(frequencies))*INCORRECT_NUMBER_NOTES_PENALTY
-	return delta
+	return delta + abs(len(master_frequencies) - len(frequencies))*penalty
 
 def evolution_step(step, save_best=False):
 	f.canvas.set_window_title('Step {}/{}'.format(step+1, NUM_STEPS))
 	print('BEGINNING STEP NUMBER', step)
+	print('Size of pop:', len(pop))
 	kill_ratio = interpolations['Kill Ratio'].interpolate(step)
+	penalty = interpolations['Incorrect Num Notes Penalty'].interpolate(step)
 	# **Display each chord**
-	for i in range(MAX_POP_SIZE):
+	for i in range(MAX_SHOW_SIZE):
 		plt.subplot(n_rows, n_cols, i+1)
 		pop[i].plot()
 		chord_pos[pop[i]] = i+1
@@ -114,30 +117,40 @@ def evolution_step(step, save_best=False):
 	for c, chord in enumerate(pop):
 		frequencies = Guitar.frequency_list(chord.read())
 		try:
-			fitness = fitness_eval(frequencies)
+			fitness = fitness_eval(frequencies, penalty)
 		except Exception as e:
 			print(e,frequencies)
 		chord.fitness = fitness
-		plt.subplot(n_rows,n_cols,c+1)
-		plt.title('Chord {}: f={}'.format(c+1,round(fitness,2)))
+		if c<MAX_SHOW_SIZE:
+			plt.subplot(n_rows,n_cols,c+1)
+			plt.title('Chord {}: f={}'.format(c+1,round(fitness,2)))
 		row.append(fitness)
 	plt.pause(FITNESS_PAUSE)
-	avg_f = np.mean([c.fitness for c in pop])
+	avg_f = np.mean(row)
+	
 	if save_best:
 		if len(fitnesses) > 0:
+			if step==3:
+				print(fitnesses)
 			if avg_f < min(np.mean(fitnesses, axis=1)):
+				print('Saving this population to file...')
 				with open('best.pickle', 'wb') as file:
 					pickle.dump(pop, file)
+
 	fitnesses.append(row)
+
 	# **Kill the weakest chords**
 	# The bottom 50% or so of the population in terms of fitness
 	# will be eliminated and will not have a chance to breed.
 	# - sort by fitness
 	# - remove the bottom half
 	pop.sort(key=lambda x: (x.fitness), reverse=False)
+	kill_count = np.ceil(len(pop)*(kill_ratio))
+	print('Killing {} organisms with the lowest fitness...'.format(kill_count))
 	for c, chord in enumerate(pop[-1:int(len(pop)*(1-kill_ratio)):-1]):
-		plt.subplot(n_rows, n_cols,chord_pos[chord])
-		plt.title('Killed')
+		if chord in chord_pos:
+			plt.subplot(n_rows, n_cols,chord_pos[chord])
+			plt.title('Killed')
 		draw_x()
 		chord.alive = False
 		#print('Killed Chord {} with f={}'.format(chord_pos[chord],chord.fitness))
@@ -161,12 +174,16 @@ def evolution_step(step, save_best=False):
 		chord_breeder.set_mutation_rate(interpolations['Mutation Rate'].interpolate(step))
 		offspring_a = chord_breeder.breed(candidates[i*2], candidates[i*2+1], debug=False)
 		offspring_b = chord_breeder.breed(candidates[i*2], candidates[i*2+1], debug=False)
-		print('----------')
+		
 		pop.append(offspring_a)
-		chord_pos[offspring_a] = find_empty_spot()
+		empty_spot = find_empty_spot()
+		if empty_spot is not None:
+			chord_pos[offspring_a] = empty_spot
 		if(len(pop)< MAX_POP_SIZE):
 			pop.append(offspring_b)
-			chord_pos[offspring_b] = find_empty_spot()
+			empty_spot = find_empty_spot()
+			if empty_spot is not None:
+				chord_pos[offspring_b] = empty_spot
 		
 		i+=1
 
@@ -176,7 +193,10 @@ def evolution_step(step, save_best=False):
 
 if __name__ == "__main__":
 	# Defining master chord
-	f1 = Finger(string=6, technique='Mute', stop_string=1, start_fret=6)
+	f1 = Finger(string=4, technique='Barre', start_fret=2, stop_string=2)
+	#f2 = Finger(string=6, technique='Single_Note', increment=1)
+	#f3 = Finger(string=2, technique='Single_Note_Then_Mute', increment=0, stop_string=1)
+	#f4 = Finger(string=1, technique='Single_Note', increment=3)
 	master_chord = Chord(fingers=[f1])
 	master_frequencies = Guitar.frequency_list(master_chord.read())
 	master_chord.plot()
@@ -184,7 +204,7 @@ if __name__ == "__main__":
 	plt.show()
 	#master_frequencies = q_transform.analyze('./tmp/target.wav', plot_q_transform=True, debug=True)
 	print('Master frequencies:',master_frequencies)
-	
+	print('Showing {0}% of organisms in the population'.format(MAX_SHOW_SIZE/MAX_POP_SIZE*100))
 	
 	# Initializing the population randomly
 	f, axs = plt.subplots(n_rows, n_cols, sharex=True)
@@ -194,9 +214,11 @@ if __name__ == "__main__":
 	mng = plt.get_current_fig_manager()
 	mng.window.state('zoomed')
 	kill_interp = LinearInterpolation(start=.3,end=.6,end_step=25)
-	mutation_interp = LinearInterpolation(start=.1,end=.4,end_step=50)
+	mutation_interp = LinearInterpolation(start=.1,end=.6,end_step=60)
+	incorrect_num_notes_interp = LinearInterpolation(start=.75, end=.75, end_step=50)
 	interpolations['Kill Ratio'] = kill_interp
 	interpolations['Mutation Rate'] = mutation_interp
+	interpolations['Incorrect Num Notes Penalty'] = incorrect_num_notes_interp
 	for i in range(MAX_POP_SIZE):
 		chord = Chord()
 		pop.append(chord)
@@ -209,7 +231,7 @@ if __name__ == "__main__":
 			
 	else:
 		step = 0
-		while patient():
+		while patient(monitor='mean'):
 			plt.clf()
 			evolution_step(step, save_best=True)
 			step+=1

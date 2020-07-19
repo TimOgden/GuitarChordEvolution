@@ -54,4 +54,4 @@ def analyze(filename, plot_q_transform=False, debug=False,hops_multiplier=0):
 
 if __name__ == '__main__':
 	filename = sys.argv[1]
-	analyze(filename, plot_q_transform=True, debug=True,hops_multiplier=1)
+	print(analyze(filename, plot_q_transform=True, debug=True,hops_multiplier=1))

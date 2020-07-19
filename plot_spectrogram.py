@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
-from scipy.misc import imsave
+from imageio import imwrite
 from scipy import signal
 import sys
 import numpy as np
@@ -24,7 +24,7 @@ def plot_spect(file, output, plot_plt=False):
 		plt.ylim(top=8000)
 		plt.axhline(y=1318.51, linewidth=1)
 		plt.show()
-	imsave(output, 10*np.log10(spectrogram))
+	imwrite(output, 10*np.log10(spectrogram))
 	return frequencies
 
 def MSE(guess, target='./tmp/target.png'):

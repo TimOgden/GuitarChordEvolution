@@ -1,7 +1,5 @@
 from note import Note
 import numpy as np
-from jpype import startJVM, shutdownJVM, java, addClassPath, JClass, JInt
-import jpype.imports
 import matplotlib.pyplot as plt
 from recorder import start_recording_thread
 from finger import Finger
@@ -44,23 +42,23 @@ class Guitar():
 		
 		return np.flip(frets_list).astype(np.int16)
 
-	@staticmethod
-	def play_chord(chord):
-		try:
-			pass # Not sure why we need a pass here
-			tester = JClass('SoundTester')
-			#muter = tester.audioSource
-			e_ = java.lang.Integer(chord[0]) # Unpacking the integers
-			a = java.lang.Integer(chord[1]) # from the list to supply
-			d = java.lang.Integer(chord[2]) # it in an easier fashion
-			g = java.lang.Integer(chord[3]) # to the JVM
-			b = java.lang.Integer(chord[4])
-			e = java.lang.Integer(chord[5])
-			tester.playChordTab(e_,a,d,g,b,e)
-			time.sleep(2.5)
-			#muter.clearOutChannels()
-		except Exception as e:
-			print(f"Exception: {e}")
+#	@staticmethod
+#	def play_chord(chord):
+#		try:
+#			pass # Not sure why we need a pass here
+#			tester = JClass('SoundTester')
+#			#muter = tester.audioSource
+#			e_ = java.lang.Integer(chord[0]) # Unpacking the integers
+#			a = java.lang.Integer(chord[1]) # from the list to supply
+#			d = java.lang.Integer(chord[2]) # it in an easier fashion
+#			g = java.lang.Integer(chord[3]) # to the JVM
+#			b = java.lang.Integer(chord[4])
+#			e = java.lang.Integer(chord[5])
+#			tester.playChordTab(e_,a,d,g,b,e)
+#			time.sleep(2.5)
+#			#muter.clearOutChannels()
+#		except Exception as e:
+#			print(f"Exception: {e}")
 
 	@staticmethod
 	def frequency_list(tab):
@@ -70,17 +68,3 @@ class Guitar():
 				frequency_list.append(Guitar.open_string_tunings[6-c].increment(fret).frequency())
 		return frequency_list
 
-	@staticmethod
-	def openJVM():
-		startJVM(convertStrings=False)
-		jvm_open = True
-
-	@staticmethod
-	def closeJVM():
-		shutdownJVM()
-		jvm_open = False
-
-
-if __name__ == '__main__':
-	Guitar.openJVM()
-	Guitar.closeJVM()
