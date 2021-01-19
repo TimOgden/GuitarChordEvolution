@@ -55,7 +55,7 @@ def one_hot(img, threshold=214):
 if __name__ == '__main__':
 	file1 = sys.argv[1]
 	file2 = sys.argv[2]
-	frequencies = plot_spect(file2, './tmp/target_real.png', plot_plt=False)
-	one_hot(file1)
+	frequencies = plot_spect(file2, './tmp/target_real.png', plot_plt=True)
+	#one_hot(file1)
 	#freq1 = plot_spect(file2, './tmp/target_real.png', plot_plt=False)
 	#print(freq1[5],freq1[6],freq1[11])
