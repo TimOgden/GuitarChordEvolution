@@ -296,8 +296,13 @@ if __name__ == "__main__":
 	interpolations['Kill Ratio'] = kill_interp
 	interpolations['Mutation Rate'] = mutation_interp
 	interpolations['Incorrect Num Notes Penalty'] = incorrect_num_notes_interp
-	all_max_fitnesses = epochs(RUNS, display_graphs=False, display_chords=True)
-	print('Max fitness:', max(all_max_fitnesses))
-	print('Median fitness:', np.median(all_max_fitnesses))
-	print('Mean fitness:', np.mean(all_max_fitnesses))
-	print('Num of perfect:', sum([fit == 0 for fit in all_max_fitnesses]))
+
+	if RUNS>1:
+		all_max_fitnesses = epochs(RUNS, display_graphs=False, display_chords=True)
+		print('Max fitness:', max(all_max_fitnesses))
+		print('Median fitness:', np.median(all_max_fitnesses))
+		print('Mean fitness:', np.mean(all_max_fitnesses))
+		print('Num of perfect:', sum([fit == 0 for fit in all_max_fitnesses]))
+	else:
+		one_epoch(display_graphs=True, display_chords=True)
+		print('Saved best to best.pickle')
