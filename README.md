@@ -1,6 +1,13 @@
 # GuitarChordEvolution
 Uses an evolutionary algorithm to generate guitar chords with no knowledge of music theory.
 
+## Installation
+
+```git clone https://github.com/TimOgden/GuitarChordEvolution```
+
+```pip install -r requirements.txt```
+
+**Note:** If you are on windows, the installation of PyAudio is likely to fail. Go to https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio, find the appropriate version for your version of python and put it in your working directory. Then call ```pip install [YOUR .WHL FILE]```.
 
 ## How to use
 
